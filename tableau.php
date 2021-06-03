@@ -1,4 +1,20 @@
+<?php
+session_start();
+if  (isset ($_SESSION["Login"])) {
+    require "connexion_bdd.php"; // Inclusion de notrebibliothèque de fonctions
 
+    $db = connexionBase(); // Appel de la fonction deconnexion
+}
+if(!empty($log)&& !empty($password)) {
+
+
+    $result = $db->prepare("SELECT * FROM users WHERE us_login= :us_login");
+    $result->execute(['us_login' => $_SESSION["Login"]]);
+// Renvoi de l'enregistrement sous forme d'un objet
+    $row1 = $result->fetch();
+    $role = $row1['role'];
+}
+?>
 <?php
 include("entete.php");
 ?>
@@ -12,8 +28,14 @@ include("entete.php");
         
         
     ?>
+<?php
+if($_SESSION['role']!="admine"){
+    header("Location:te.php");
 
-
+}else{
+    echo "ok";
+}
+?>
  <table class="table table-striped table-bordered container-fluid col-lg-8">
         <thead>
             <tr>
@@ -61,6 +83,6 @@ include("entete.php");
     <?php
     require "piedpage.php";
     ?>
-</body>
 
+</body>
 </html>
