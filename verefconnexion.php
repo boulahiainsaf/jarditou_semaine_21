@@ -1,11 +1,19 @@
 <?php
+session_start();
+
+
+
 
 $log=$_POST['login'];
 $password =$_POST['password'];
 
+$_SESSION['login'] = $log;
+$_SESSION['password'] = $password;
+var_dump($_SESSION);
 require "connexion_bdd.php"; // Inclusion de notrebibliothèque de fonctions
 
 $db = connexionBase(); // Appel de la fonction deconnexion
+
 if(!empty($log)&& !empty($password)) {
 
 
@@ -14,37 +22,33 @@ if(!empty($log)&& !empty($password)) {
 // Renvoi de l'enregistrement sous forme d'un objet
     $row = $result->fetch();
     $role=$row['role'];
+    $hashpassword = $row['us_password'];
 
-    if ($row == true){
-        $hashpassword = $row['us_password'];
-        if(password_verify($password, $hashpassword)){
-            if ($role==1){
+    echo  $hashpassword;
+    if ($row == true) {
+        if (password_verify($_POST['password'] , $hashpassword)) {
+            $sql =$db->prepare( 'UPDATE users SET us_date_inscription= :us_date_inscription   WHERE us_login='.$log);
+            $sql->bindValue(":us_date_inscription", date('Y-m-d H:i:s'));
+            $success= $sql->execute();
+            if ($role == 1) {
+                $_SESSION['role']="admine";
 
-                $_SESSION['admine']=$log;
-                $_SESSION['password'] =$password;
-                $_SESSION['role']='1';
-            } else {
-
-                $_SESSION['client']=$log;
-                $_SESSION['password'] =$password;
-                $_SESSION['role']='0';
-            }
-            include("entete.php");
-
-            if (isset($_SESSION['admine'])){
                 header("Location:tableau.php");
-
-            }else if (isset($_SESSION['client'])) {
+            } else {
+                $_SESSION['role']="client";
                 header("Location:tab1.php");
             }
-            exit;
-        }else{
+
+        } else {
             echo "le mots de passe n'est pas correcte";
+
         }
-    } else{
-        echo "le compte portant le login ".$log." n'existe pas ";
-    }
-}else {
-    echo "Veullez completer l'ensemble des champs";
-}
+        }
+    else{
+            echo "le compte portant le login " . $log . " n'existe pas ";
+
+        }
+    }else {
+        echo "Veullez completer l'ensemble des champs";
+        }
 
